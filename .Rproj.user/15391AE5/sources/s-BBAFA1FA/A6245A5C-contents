@@ -81,6 +81,7 @@ replace_missing_update<- function(df, summary) {
     df %>% replace(., is.na(df), summary_value)
   }
 }
+
 ```
 
 
@@ -90,3 +91,29 @@ iris_replace_missing_mean <- map(iris_with_missing, replace_missing_update, mean
 iris_replace_missing_median <- map(iris_with_missing, replace_missing_update, median) %>% data.frame()
 
 ```
+
+
+#Problem 2
+
+This problem uses the Airbnb data.
+
+Load and tidy the data as needed for analysis. Nest columns within boro and describe the resulting data frame.
+
+Using mutate + map (and other functions as necessary), fit models for rental price as an outcome using rating and room type as predictors. Extract the results of your modeling and unnest the result. Present the results of your analysis, using text, tables, and figures as appropriate.
+
+```{r loading and tidying airbnb data}
+library(janitor)
+airbnb_data <- read_csv("../data/nyc_airbnb.csv") %>%
+  clean_names() %>%
+  mutate(rating = review_scores_location / 2) %>%
+  select(boro = neighbourhood_group, neighbourhood, rating, price, room_type,
+         latitude, longitude)
+```
+
+
+```{r nesting data frame}
+airbnb_data_nest<-nest(airbnb_data, neighbourhood:longitude)
+
+```
+
+Nesting the airbnb_data dataset within boro results in a new dataset with 5 observations and 2 variables: borough name (boro), and the corresponding list columns (data) that contain all the information about neighborhoods, rating, price, room_type, latitude, and longitude for each borough. 
