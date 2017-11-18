@@ -28,9 +28,65 @@ iris_with_missing = iris %>%
 
 ```{r build-up to function}
 #If I was dealing with an individual vector
-mean_Sepal.Length<-iris_with_missing$Sepal.Length %>% mean(na.rm = TRUE) %>% round(., 2)
+mean_Sepal.Length<-iris_with_missing$Sepal.Length %>% mean(na.rm = TRUE) %>% round(., 1)
+
+virginica<-c("virginica")
 
 #This takes an individual vector and returns an individual vector
 iris_with_missing$Sepal.Length %>% replace(., is.na(iris_with_missing$Sepal.Length), mean_Sepal.Length)
+
+iris_with_missing$Species %>% replace(., is.na(iris_with_missing$Species), virginica)
+
+
+```
+
+Now what we want to do to this is generalize it so that it can be appplied across all the columns using the map function. 
+The inputs that are required:
+* dataframe
+* replacement value (changes depending on numeric or character), but this is created within function
+* column name (changes)
+
+```{r Problem 1 function}
+
+replace_missing<- function(df) {
+  mean_value <- df %>% mean(., na.rm = TRUE) %>% round(., 1)
+  virginica<-c("virginica")
+  
+  if (is.character(df)) {
+    df %>% replace(., is.na(df), virginica)
+  } else if (is.numeric(df)) {
+    df %>% replace(., is.na(df), mean_value)
+  }
+}
+
+
+
+```
+
+```{r replacing missing in iris_with_missing dataset}
+
+iris_replace_missing <- map(iris_with_missing, replace_missing) %>% data.frame()
+```
+
+
+```{r function with different summary statements}
+
+replace_missing_update<- function(df, summary) {
+  summary_value <- df %>% summary(., na.rm = TRUE) %>% round(., 1)
+  virginica<-c("virginica")
+  
+  if (is.character(df)) {
+    df %>% replace(., is.na(df), virginica)
+  } else if (is.numeric(df)) {
+    df %>% replace(., is.na(df), summary_value)
+  }
+}
+```
+
+
+```{r replace missing with mean} 
+iris_replace_missing_mean <- map(iris_with_missing, replace_missing_update, mean) %>% data.frame()
+
+iris_replace_missing_median <- map(iris_with_missing, replace_missing_update, median) %>% data.frame()
 
 ```

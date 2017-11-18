@@ -5,26 +5,88 @@ date: "11/18/2017"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+##Problem 1
+There are two cases to address:
+
+For numeric variables, you should fill in missing values with the mean of non-missing values
+For character variables, you should fill in missing values with "virginica"
+Write a function that takes a vector as an argument; replaces missing values using the rules defined above; and returns the resulting vector. Apply this function to the columns of iris_with_missing using a map statement.
+
+Sometimes you might want to use the mean of numeric variables; other times you might want to use the median. Edit your function so that different summaries can be used for numeric variables. Apply this function to the columns of iris_with_missing using a map statement, first using mean and then using median.
+
+
+```{r loading iris dataset}
+
+library(tidyverse)
+
+set.seed(10)
+
+iris_with_missing = iris %>% 
+  map_df(~replace(.x, sample(1:150, 20), NA)) %>%
+  mutate(Species = as.character(Species))
 ```
 
-## R Markdown
+```{r build-up to function}
+#If I was dealing with an individual vector
+mean_Sepal.Length<-iris_with_missing$Sepal.Length %>% mean(na.rm = TRUE) %>% round(., 1)
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+virginica<-c("virginica")
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+#This takes an individual vector and returns an individual vector
+iris_with_missing$Sepal.Length %>% replace(., is.na(iris_with_missing$Sepal.Length), mean_Sepal.Length)
 
-```{r cars}
-summary(cars)
+iris_with_missing$Species %>% replace(., is.na(iris_with_missing$Species), virginica)
+
+
 ```
 
-## Including Plots
+Now what we want to do to this is generalize it so that it can be appplied across all the columns using the map function. 
+The inputs that are required:
+* dataframe
+* replacement value (changes depending on numeric or character), but this is created within function
+* column name (changes)
 
-You can also embed plots, for example:
+```{r Problem 1 function}
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+replace_missing<- function(df) {
+  mean_value <- df %>% mean(., na.rm = TRUE) %>% round(., 1)
+  virginica<-c("virginica")
+  
+  if (is.character(df)) {
+    df %>% replace(., is.na(df), virginica)
+  } else if (is.numeric(df)) {
+    df %>% replace(., is.na(df), mean_value)
+  }
+}
+
+
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r replacing missing in iris_with_missing dataset}
+
+iris_replace_missing <- map(iris_with_missing, replace_missing) %>% data.frame()
+```
+
+
+```{r function with different summary statements}
+
+replace_missing_update<- function(df, summary) {
+  summary_value <- df %>% summary(., na.rm = TRUE) %>% round(., 1)
+  virginica<-c("virginica")
+  
+  if (is.character(df)) {
+    df %>% replace(., is.na(df), virginica)
+  } else if (is.numeric(df)) {
+    df %>% replace(., is.na(df), summary_value)
+  }
+}
+```
+
+
+```{r replace missing with mean} 
+iris_replace_missing_mean <- map(iris_with_missing, replace_missing_update, mean) %>% data.frame()
+
+iris_replace_missing_median <- map(iris_with_missing, replace_missing_update, median) %>% data.frame()
+
+```
