@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1511053788615.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "ACC3F502",
+    "lastKnownWriteTime" : 1510245475,
+    "last_content_update" : 1510245475,
+    "path" : "~/Documents/Columbia/Semester3/Data Science/Homeworks/p8105_hw5_cgd2137/p8105_hw5_cgd2137.Rmd",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "50,61",
+        "scrollLine" : "44"
+    },
+    "relative_order" : 9,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

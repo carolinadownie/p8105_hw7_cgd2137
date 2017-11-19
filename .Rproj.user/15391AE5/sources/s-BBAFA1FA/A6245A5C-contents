@@ -42,8 +42,11 @@ iris_with_missing$Species %>% replace(., is.na(iris_with_missing$Species), virgi
 
 Now what we want to do to this is generalize it so that it can be appplied across all the columns using the map function. 
 The inputs that are required:
+
 * dataframe
+
 * replacement value (changes depending on numeric or character), but this is created within function
+
 * column name (changes)
 
 ```{r Problem 1 function}
@@ -93,7 +96,7 @@ iris_replace_missing_median <- map(iris_with_missing, replace_missing_update, me
 ```
 
 
-#Problem 2
+##Problem 2
 
 This problem uses the Airbnb data.
 
@@ -114,6 +117,53 @@ airbnb_data <- read_csv("../data/nyc_airbnb.csv") %>%
 ```{r nesting data frame}
 airbnb_data_nest<-nest(airbnb_data, neighbourhood:longitude)
 
+
 ```
 
 Nesting the airbnb_data dataset within boro results in a new dataset with 5 observations and 2 variables: borough name (boro), and the corresponding list columns (data) that contain all the information about neighborhoods, rating, price, room_type, latitude, and longitude for each borough. 
+
+
+#Rental Price by Rating
+
+This is a continuous predictor variable 
+```{r fitting model for rental price by rating}
+#Rating
+
+   airbnb_data_nest %>%
+  mutate(model = map(data, ~lm(price ~ rating, data = .x)), 
+         results = map(model, broom::tidy)) %>%
+  select(-data, -model) %>%
+  unnest() %>% knitr::kable()
+  
+
+
+airbnb_data %>%
+  ggplot(aes(x = rating, y = price, group = boro, color = boro)) + 
+    geom_point() + 
+    geom_smooth(method = "lm", formula = y ~ x) +
+  facet_grid(. ~boro) + 
+  labs(
+    title = "Plot of rental price by rating") +
+   theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+#Rental Price by Room Type
+
+This is a categorical variable with three possible options: entire home/apt, private room, or shared room, therefore we need 2 dummy variables (k-1). When we run the linear model, "Entire home/apt" is set as the reference variable. 
+```{r fitting model for rental prices}
+#Room Type
+  airbnb_data_nest %>%
+  mutate(model = map(data, ~lm(price ~ room_type, data = .x)), 
+         results = map(model, broom::tidy)) %>%
+  select(-data, -model) %>%
+  unnest() %>% knitr::kable()
+  
+
+airbnb_data %>%
+  ggplot(aes(x = room_type, y = price, group = boro, color = boro)) + 
+    geom_point() + 
+    geom_smooth(method = "lm", formula = y ~ x) +
+  facet_grid(. ~boro) + labs(
+    title = "Plot of rental price by room_type") +
+   theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
