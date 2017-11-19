@@ -146,6 +146,7 @@ airbnb_data %>%
     title = "Plot of rental price by rating") +
    theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
+The table of slope and intercept values, and the plots show that for all boroughs except Staten Island, there is a positive relationship between rating and price. 
 
 #Rental Price by Room Type
 
@@ -167,3 +168,42 @@ airbnb_data %>%
     title = "Plot of rental price by room_type") +
    theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
+
+The table of slope and intercept values and the plots show that for all 5 boroughs, there is a negative relationship between price and room type when room_type Entire house/apartment is the reference value. 
+
+
+##Problem 3
+When designing an experiment or analysis, a common question is whether it is likely that a true effect will be detected – put differently, whether a false null hypothesis will be rejected. The probability that a false null hypothesis is rejected is referred to as power, and it depends on several factors, including: the sample size; the effect size; and the error variance. In this problem, you will conduct a simulation to explore power in a multiple linear regression.
+
+First set the following design elements:
+
+Fix n=30
+Fix xi1
+ and xi2
+ as draws from independent standard normal distributions
+Fix β0=1
+ and β1=1
+.
+Fix σ2=50
+Next, set β2=0
+. Generate 10000 datasets from the model
+yi=β0+β1xi1+β2xi2+ϵi
+with ϵi∼N[0,σ2]
+. For each dataset, save β̂2
+ and the p-value arising from a test of H:β2=0
+ using α=0.05
+.
+
+Repeat the above for β2={1,2,3,4,5,6}
+, and complete the following:
+
+Make a plot showing the proportion of times the null was rejected (the power of the test) on the y axis and the true value of β2
+ on the x axis. Describe the association between effect size and power.
+Make a plot showing the average estimate of β̂2
+ on the y axis and the true value of β2
+ on the x axis. Make a second plot (or overlay on the first) the average estimate of β̂2
+ in tests for which the null is rejected on the y axis and the true value of β2
+ on the x axis. Is the sample average of β̂2
+ across tests for which the null is rejected approximately equal to the true value of β2
+? Why or why not?
+
