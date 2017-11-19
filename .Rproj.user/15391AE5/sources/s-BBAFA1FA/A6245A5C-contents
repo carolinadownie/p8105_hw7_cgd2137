@@ -181,6 +181,30 @@ Fix n=30
 Fix xi1
  and xi2
  as draws from independent standard normal distributions
+```{r}
+sim_regression <- function(n=30, beta0=1, beta1=1, beta2, var = 50) {
+  sim_data <- tibble(
+    xi1 = rnorm(n, 0, 1),
+    xi2 = rnorm(n, 0,1),
+    y= beta0 +beta1*xi1 + beta2*xi2 + rnorm(n, 0, var)
+  )
+  ls_fit = lm(y ~ xi1 + xi2, data = sim_data)
+  
+  tibble(
+    n = n,
+    beta2_hat = summary(ls_fit)$coefficients[3,1],
+    pvalue = summary(ls_fit)$coefficients[,4]
+  )
+}
+
+
+test_result<-rerun(10 ,sim_regression(beta2=0)) %>% bind_rows()
+
+
+```
+
+
+
 Fix β0=1
  and β1=1
 .
