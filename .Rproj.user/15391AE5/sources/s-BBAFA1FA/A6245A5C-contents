@@ -270,12 +270,15 @@ beta2_summary<-rbind(beta2_hat, beta2_reject)
 
 beta2_summary %>% 
   ggplot(aes(x = beta2_real, y = mean_beta2, col = variable)) + 
-  geom_point()
+  geom_point() + labs(
+    title = "Plot of the true value of beta2 versus the mean estimated beta2 value"
+  )
 ```
 
- Make a second plot (or overlay on the first) the average estimate of β̂2
- in tests for which the null is rejected on the y axis and the true value of β2
- on the x axis. Is the sample average of β̂2
- across tests for which the null is rejected approximately equal to the true value of β2
-? Why or why not?
+
+
+As this plot shows, the sample averages of β̂2  across tesst for which the null is rejected are not approximately equal to the true value of β2. This makes sense--in order for the null hypothesis that β2=0 to be rejected, we would expect that the estimated β2 is far from zero. 
+
+
+
 
