@@ -16,7 +16,7 @@ Sometimes you might want to use the mean of numeric variables; other times you m
 
 
 ```{r loading iris dataset}
-
+library(ggplot2)
 library(tidyverse)
 
 set.seed(10)
@@ -181,6 +181,13 @@ Fix n=30
 Fix xi1
  and xi2
  as draws from independent standard normal distributions
+ 
+ Fix β0=1
+ and β1=1
+.
+Fix σ2=50
+Next, set β2=0
+. Generate 10000 datasets from the model
 ```{r}
 sim_regression <- function(n=30, beta0=1, beta1=1, beta2, var = 50) {
   sim_data <- tibble(
@@ -189,43 +196,84 @@ sim_regression <- function(n=30, beta0=1, beta1=1, beta2, var = 50) {
     y= beta0 +beta1*xi1 + beta2*xi2 + rnorm(n, 0, var)
   )
   ls_fit = lm(y ~ xi1 + xi2, data = sim_data)
-  
+
   tibble(
-    n = n,
-    beta2_hat = summary(ls_fit)$coefficients[3,1],
-    pvalue = summary(ls_fit)$coefficients[,4]
-  )
+  beta2_real = beta2,
+  beta2_hat=summary(ls_fit)$coefficients[3,1], 
+  pvalue = summary(ls_fit)$coefficients[3,4]
+  
+  )  
 }
 
+beta2_0<-rerun(5,sim_regression(n=30, beta0=1, beta1=1, beta2 = 0, var = 50)) %>% bind_rows()
 
-test_result<-rerun(10 ,sim_regression(beta2=0)) %>% bind_rows()
+```
 
+Repeat the above for β2={1,2,3,4,5,6}--since we're going to be repeating this multiple times, we should make a function and use a map function to apply it across multiple options for beta2
+
+```{r}
+
+simulate_beta2<- function(n_rep, beta2) {
+  rerun(n_rep, sim_regression(n=30, beta0=1, beta1=1, beta2, var = 50)) %>% bind_rows()
+}
+
+beta2_options<-c(0:6)
+beta2_estimates<-map_df(beta2_options, simulate_beta2, n_rep = 1000)
 
 ```
 
 
 
-Fix β0=1
- and β1=1
-.
-Fix σ2=50
-Next, set β2=0
-. Generate 10000 datasets from the model
-yi=β0+β1xi1+β2xi2+ϵi
-with ϵi∼N[0,σ2]
-. For each dataset, save β̂2
- and the p-value arising from a test of H:β2=0
- using α=0.05
-.
-
-Repeat the above for β2={1,2,3,4,5,6}
-, and complete the following:
-
 Make a plot showing the proportion of times the null was rejected (the power of the test) on the y axis and the true value of β2
  on the x axis. Describe the association between effect size and power.
+ 
+```{r}
+
+beta2_estimates %>% group_by(beta2_real) %>%
+  mutate(n_tests = n()) %>%
+ filter(pvalue < 0.05) %>%
+  group_by(beta2_real) %>%
+  mutate(reject = n(), power = reject/n_tests) %>% 
+  select(beta2_real, power) %>% 
+  unique() %>%
+  ggplot(aes(x = beta2_real, y = power)) + 
+  geom_bar(stat = "identity") + labs(
+    title = "Plot of the power of the test versus the true beta2 value"
+  )
+
+
+```
+
+
+This plot shows that in general, as effect size increases, the power increases. 
+
+
+
+ 
 Make a plot showing the average estimate of β̂2
  on the y axis and the true value of β2
- on the x axis. Make a second plot (or overlay on the first) the average estimate of β̂2
+ on the x axis. 
+```{r}
+ 
+beta2_hat<-beta2_estimates %>% group_by(beta2_real) %>%
+  mutate(mean_beta2 = mean(beta2_hat), variable = "mean_beta2_hat") %>%
+  select(beta2_real, mean_beta2, variable) %>%
+  unique() 
+  
+beta2_reject<-beta2_estimates %>% filter(pvalue < 0.05) %>% 
+  group_by(beta2_real) %>%
+  mutate(mean_beta2 = mean(beta2_hat), variable = "mean_beta2_reject") %>%
+  select(beta2_real, mean_beta2, variable) %>%
+  unique() 
+ 
+beta2_summary<-rbind(beta2_hat, beta2_reject) 
+
+beta2_summary %>% 
+  ggplot(aes(x = beta2_real, y = mean_beta2, col = variable)) + 
+  geom_point()
+```
+
+ Make a second plot (or overlay on the first) the average estimate of β̂2
  in tests for which the null is rejected on the y axis and the true value of β2
  on the x axis. Is the sample average of β̂2
  across tests for which the null is rejected approximately equal to the true value of β2

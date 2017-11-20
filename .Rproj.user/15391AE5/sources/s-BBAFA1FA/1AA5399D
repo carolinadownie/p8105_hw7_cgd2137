@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1511139233887.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "1AA5399D",
+    "lastKnownWriteTime" : 0,
+    "last_content_update" : 1511139233887,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "20BCA133",
+        "caption" : "beta2_hat",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=beta2_hat&cache_key=20BCA133",
+        "displayedObservations" : 7,
+        "environment" : "",
+        "object" : "beta2_hat",
+        "preview" : 0,
+        "totalObservations" : 7,
+        "variables" : 3
+    },
+    "relative_order" : 9,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}
