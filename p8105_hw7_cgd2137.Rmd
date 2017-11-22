@@ -222,7 +222,7 @@ beta2_estimates<-map_df(beta2_options, simulate_beta2, n_rep = 1000)
 
 ```
 
-
+***Note: I used 1000 here instead of 10000 because when I tried 10000 it took over 15 minutes and still didn't load, so I stopped trying. 
 
 Make a plot showing the proportion of times the null was rejected (the power of the test) on the y axis and the true value of β2
  on the x axis. Describe the association between effect size and power.
@@ -277,8 +277,43 @@ beta2_summary %>%
 
 
 
-As this plot shows, the sample averages of β̂2  across tesst for which the null is rejected are not approximately equal to the true value of β2. This makes sense--in order for the null hypothesis that β2=0 to be rejected, we would expect that the estimated β2 is far from zero. 
+As this plot shows, the sample averages of β̂2  across tsst for which the null is rejected are not approximately equal to the true value of β2. This makes sense--in order for the null hypothesis that β2=0 to be rejected, we would expect that the estimated β2 is far from zero. 
 
+
+
+##Problem 4
+
+```{r Problem 4 setting seed}
+
+library(modelr)
+
+set.seed(1)
+
+n_samp = 25
+
+sim_df_const = tibble(
+  x = rnorm(n_samp, 1, 1),
+  error = rnorm(n_samp, 0, 1),
+  y = 2 + 3 * x + error
+)
+
+sim_df_const %>%
+  bootstrap(n = 1000) %>% 
+  mutate(models = map(strap, ~lm(y ~ x, data = .x)), 
+         results = map(models, broom::tidy)) %>%
+  select(results) %>% 
+  unnest() %>%
+  select(term, estimate) 
+  
+
+
+```
+
+For various reasons, I’m interested in the distribution of θ̂=log(β̂0β̂1)
+. This distribution can be difficult to obtain analytically (although it is not impossible). Using the bootstrap, produce an empirical distribution for θ̂
+; illustrate this distribution graphically.
+
+Increase the size of the simulated dataset to 50 and repeat the bootstrap procedure above. Increase again to 250 and repeat. Comment on your results.
 
 
 
