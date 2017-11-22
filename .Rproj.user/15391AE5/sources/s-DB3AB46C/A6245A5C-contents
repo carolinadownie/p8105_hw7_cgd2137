@@ -277,30 +277,27 @@ beta2_summary %>%
 
 
 
-As this plot shows, the sample averages of β̂2  across tsst for which the null is rejected are not approximately equal to the true value of β2. This makes sense--in order for the null hypothesis that β2=0 to be rejected, we would expect that the estimated β2 is far from zero. 
+As this plot shows, the sample averages of beta2_hat across tests for which the null is rejected are not approximately equal to the true value of β2. This makes sense--in order for the null hypothesis that β2=0 to be rejected, we would expect that the estimated β2 is far from zero. 
 
 
 
 ##Problem 4
 
-```{r Problem 4 setting seed}
+```{r Problem 4 function}
 
 library(modelr)
 
-set.seed(1)
-
-n_samp = 25
-
-sim_df_const = tibble(
+sim_df_const_function <- function(n_samp){
+  set.seed(1)
+  tibble(
   x = rnorm(n_samp, 1, 1),
   error = rnorm(n_samp, 0, 1),
   y = 2 + 3 * x + error
 )
+}
 
-
-
-sim_df_const %>%
-  bootstrap(n = 1000) %>% 
+sim_df_const_function(25) %>%
+  bootstrap(n = 5000) %>% 
   mutate(models = map(strap, ~lm(y ~ x, data = .x)), 
          results = map(models, broom::tidy)) %>%
   select(results) %>% 
@@ -313,16 +310,56 @@ sim_df_const %>%
   mutate(theta_hat = log(beta0_hat/beta1_hat)) %>%
   ggplot(aes(x = theta_hat)) +
   geom_histogram() + labs(
-    
+    title = "Distribution of theta_hat when n_sample = 25, bootstrap 5000 times"
   )
 
 ```
 
-For various reasons, I’m interested in the distribution of θ̂=log(β̂0β̂1)
-. This distribution can be difficult to obtain analytically (although it is not impossible). Using the bootstrap, produce an empirical distribution for θ̂
-; illustrate this distribution graphically.
+```{r Problem 4 n_sample is 50 }
+sim_df_const_function(50) %>%
+  bootstrap(n = 5000) %>% 
+  mutate(models = map(strap, ~lm(y ~ x, data = .x)), 
+         results = map(models, broom::tidy)) %>%
+  select(results) %>% 
+  unnest() %>%
+  select(term, estimate) %>%
+  group_by(term) %>%
+  mutate(test_id = c(1:n())) %>%
+  spread(term, estimate) %>%
+  rename(beta0_hat = '(Intercept)', beta1_hat = 'x') %>%
+  mutate(theta_hat = log(beta0_hat/beta1_hat)) %>%
+  ggplot(aes(x = theta_hat)) +
+  geom_histogram() + labs(
+    title = "Distribution of theta_hat when n_sample = 50, bootstrap 5000 times"
+  )
+```
 
-Increase the size of the simulated dataset to 50 and repeat the bootstrap procedure above. Increase again to 250 and repeat. Comment on your results.
+```{r Problem 4 n_sample is 250}
+
+sim_df_const_function(250) %>%
+  bootstrap(n = 5000) %>% 
+  mutate(models = map(strap, ~lm(y ~ x, data = .x)), 
+         results = map(models, broom::tidy)) %>%
+  select(results) %>% 
+  unnest() %>%
+  select(term, estimate) %>%
+  group_by(term) %>%
+  mutate(test_id = c(1:n())) %>%
+  spread(term, estimate) %>%
+  rename(beta0_hat = '(Intercept)', beta1_hat = 'x') %>%
+  mutate(theta_hat = log(beta0_hat/beta1_hat)) %>%
+  ggplot(aes(x = theta_hat)) +
+  geom_histogram() + labs(
+    title = "Distribution of theta_hat when n_sample = 250, bootstrap 5000 times"
+  )
 
 
 
+```
+
+
+
+As we can see from these plots, as n_sample, sample size of the simulated dataset increases, the distributions of theta_hat become less skewed (the tails on both sides are more even), and the distributions shift to the left (more negative), which means that beta0_hats are smaller than beta1_hats, since it is on the log scale. 
+
+**Question: is is appropriate that the bootstrap number is 1000? Should it be changed? 
+Changing 1000 to 5000 produces tighter plots. 
