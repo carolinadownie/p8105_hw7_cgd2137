@@ -6,13 +6,6 @@ output: html_document
 ---
 
 ##Problem 1
-There are two cases to address:
-
-For numeric variables, you should fill in missing values with the mean of non-missing values
-For character variables, you should fill in missing values with "virginica"
-Write a function that takes a vector as an argument; replaces missing values using the rules defined above; and returns the resulting vector. Apply this function to the columns of iris_with_missing using a map statement.
-
-Sometimes you might want to use the mean of numeric variables; other times you might want to use the median. Edit your function so that different summaries can be used for numeric variables. Apply this function to the columns of iris_with_missing using a map statement, first using mean and then using median.
 
 
 ```{r loading iris dataset}
@@ -26,6 +19,7 @@ iris_with_missing = iris %>%
   mutate(Species = as.character(Species))
 ```
 
+Showing work for creation of function for replacing missing data in iris dataset (if necessary)
 ```{r build-up to function}
 #If I was dealing with an individual vector
 mean_Sepal.Length<-iris_with_missing$Sepal.Length %>% mean(na.rm = TRUE) %>% round(., 1)
@@ -66,6 +60,7 @@ replace_missing<- function(df) {
 
 ```
 
+Applying replace_missing function to iris_with_missing_dataset
 ```{r replacing missing in iris_with_missing dataset}
 
 iris_replace_missing <- map(iris_with_missing, replace_missing) %>% data.frame()
@@ -75,6 +70,7 @@ iris_replace_missing <- map(iris_with_missing, replace_missing) %>% data.frame()
 ```{r function with different summary statements}
 
 replace_missing_update<- function(df, summary) {
+  
   summary_value <- df %>% summary(., na.rm = TRUE) %>% round(., 1)
   virginica<-c("virginica")
   
@@ -114,7 +110,7 @@ airbnb_data <- read_csv("../data/nyc_airbnb.csv") %>%
 ```
 
 
-```{r nesting data frame}
+```{r nesting data frame in boro}
 airbnb_data_nest<-nest(airbnb_data, neighbourhood:longitude)
 
 
@@ -169,7 +165,7 @@ airbnb_data %>%
    theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
 
-The table of slope and intercept values and the plots show that for all 5 boroughs, there is a negative relationship between price and room type when room_type Entire house/apartment is the reference value. 
+The table of slope and intercept values and the plots show that for all 5 boroughs, there is a negative relationship between price and room type when room_type "Entire house/apartment" is the reference value. 
 
 
 ##Problem 3
@@ -188,8 +184,8 @@ Fix xi1
 Fix σ2=50
 Next, set β2=0
 . Generate 10000 datasets from the model
-```{r}
-sim_regression <- function(n=30, beta0=1, beta1=1, beta2, var = 50) {
+```{r creating function to simulate regression model}
+sim_regression <- function(n, beta0, beta1, beta2, var) {
   sim_data <- tibble(
     xi1 = rnorm(n, 0, 1),
     xi2 = rnorm(n, 0,1),
@@ -211,7 +207,7 @@ beta2_0<-rerun(5,sim_regression(n=30, beta0=1, beta1=1, beta2 = 0, var = 50)) %>
 
 Repeat the above for β2={1,2,3,4,5,6}--since we're going to be repeating this multiple times, we should make a function and use a map function to apply it across multiple options for beta2
 
-```{r}
+```{r creating function for running regression model, applying it across different beta2 using map function}
 
 simulate_beta2<- function(n_rep, beta2) {
   rerun(n_rep, sim_regression(n=30, beta0=1, beta1=1, beta2, var = 50)) %>% bind_rows()
