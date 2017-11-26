@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1511722648157.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "9C396F05",
+    "lastKnownWriteTime" : 4294967302,
+    "last_content_update" : 1511722648157,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "D3AFFBAC",
+        "caption" : "iris_replace_missing_mean",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=iris_replace_missing_mean&cache_key=D3AFFBAC",
+        "displayedObservations" : 150,
+        "environment" : "",
+        "object" : "iris_replace_missing_mean",
+        "preview" : 0,
+        "totalObservations" : 150,
+        "variables" : 5
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}

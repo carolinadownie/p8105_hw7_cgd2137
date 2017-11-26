@@ -46,7 +46,7 @@ The inputs that are required:
 ```{r Problem 1 function}
 
 replace_missing<- function(df) {
-  mean_value <- df %>% mean(., na.rm = TRUE) %>% round(., 1)
+  mean_value <- df %>% mean(na.rm = TRUE) %>% round(., 1)
   virginica<-c("virginica")
   
   if (is.character(df)) {
@@ -56,7 +56,7 @@ replace_missing<- function(df) {
   }
 }
 
-
+replace_missing(iris_with_missing)
 
 ```
 
@@ -69,9 +69,9 @@ iris_replace_missing <- map(iris_with_missing, replace_missing) %>% data.frame()
 
 ```{r function with different summary statements}
 
-replace_missing_update<- function(df, summary) {
+replace_missing_update<- function(df, summary_stat) {
   
-  summary_value <- df %>% summary(., na.rm = TRUE) %>% round(., 1)
+  summary_value <- df %>% summary_stat(., na.rm = TRUE) %>% round(., 1)
   virginica<-c("virginica")
   
   if (is.character(df)) {
@@ -85,6 +85,7 @@ replace_missing_update<- function(df, summary) {
 
 
 ```{r replace missing with mean} 
+
 iris_replace_missing_mean <- map(iris_with_missing, replace_missing_update, mean) %>% data.frame()
 
 iris_replace_missing_median <- map(iris_with_missing, replace_missing_update, median) %>% data.frame()
@@ -119,7 +120,7 @@ airbnb_data_nest<-nest(airbnb_data, neighbourhood:longitude)
 Nesting the airbnb_data dataset within boro results in a new dataset with 5 observations and 2 variables: borough name (boro), and the corresponding list columns (data) that contain all the information about neighborhoods, rating, price, room_type, latitude, and longitude for each borough. 
 
 
-#Rental Price by Rating
+*Rental Price by Rating*
 
 This is a continuous predictor variable 
 ```{r fitting model for rental price by rating}
@@ -144,7 +145,7 @@ airbnb_data %>%
 ```
 The table of slope and intercept values, and the plots show that for all boroughs except Staten Island, there is a positive relationship between rating and price. 
 
-#Rental Price by Room Type
+*Rental Price by Room Type*
 
 This is a categorical variable with three possible options: entire home/apt, private room, or shared room, therefore we need 2 dummy variables (k-1). When we run the linear model, "Entire home/apt" is set as the reference variable. 
 ```{r fitting model for rental prices}
@@ -309,11 +310,16 @@ sim_df_const_function(25) %>%
     title = "Distribution of theta_hat when n_sample = 25, bootstrap 5000 times"
   )
 
+
 ```
 
-```{r Problem 4 n_sample is 50 }
-sim_df_const_function(50) %>%
-  bootstrap(n = 5000) %>% 
+```{r making this into a function}
+#Since we're repeating this process more than 3 times, we need to write another function:
+
+sim_df <- function(n_samp, n) {
+  
+  sim_df_const_function(n_samp) %>%
+  bootstrap(n) %>% 
   mutate(models = map(strap, ~lm(y ~ x, data = .x)), 
          results = map(models, broom::tidy)) %>%
   select(results) %>% 
@@ -325,30 +331,23 @@ sim_df_const_function(50) %>%
   rename(beta0_hat = '(Intercept)', beta1_hat = 'x') %>%
   mutate(theta_hat = log(beta0_hat/beta1_hat)) %>%
   ggplot(aes(x = theta_hat)) +
-  geom_histogram() + labs(
-    title = "Distribution of theta_hat when n_sample = 50, bootstrap 5000 times"
-  )
+  geom_histogram() 
+}
+
+```
+
+
+
+
+```{r Problem 4 n_sample is 50 }
+
+sim_df(n_samp=50, n=5000) + labs(title = "Distribution of theta_hat when n_samp = 50 and n=5000")
+
 ```
 
 ```{r Problem 4 n_sample is 250}
 
-sim_df_const_function(250) %>%
-  bootstrap(n = 5000) %>% 
-  mutate(models = map(strap, ~lm(y ~ x, data = .x)), 
-         results = map(models, broom::tidy)) %>%
-  select(results) %>% 
-  unnest() %>%
-  select(term, estimate) %>%
-  group_by(term) %>%
-  mutate(test_id = c(1:n())) %>%
-  spread(term, estimate) %>%
-  rename(beta0_hat = '(Intercept)', beta1_hat = 'x') %>%
-  mutate(theta_hat = log(beta0_hat/beta1_hat)) %>%
-  ggplot(aes(x = theta_hat)) +
-  geom_histogram() + labs(
-    title = "Distribution of theta_hat when n_sample = 250, bootstrap 5000 times"
-  )
-
+sim_df(n_samp=250, n=5000) + labs(title = "Distribution of theta_hat when n_samp = 250 and n=5000")
 
 
 ```
