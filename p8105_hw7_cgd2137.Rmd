@@ -19,30 +19,6 @@ iris_with_missing = iris %>%
   mutate(Species = as.character(Species))
 ```
 
-Showing work for creation of function for replacing missing data in iris dataset (if necessary)
-```{r build-up to function}
-#If I was dealing with an individual vector
-mean_Sepal.Length<-iris_with_missing$Sepal.Length %>% mean(na.rm = TRUE) %>% round(., 1)
-
-virginica<-c("virginica")
-
-#This takes an individual vector and returns an individual vector
-iris_with_missing$Sepal.Length %>% replace(., is.na(iris_with_missing$Sepal.Length), mean_Sepal.Length)
-
-iris_with_missing$Species %>% replace(., is.na(iris_with_missing$Species), virginica)
-
-
-```
-
-Now what we want to do to this is generalize it so that it can be appplied across all the columns using the map function. 
-The inputs that are required:
-
-* dataframe
-
-* replacement value (changes depending on numeric or character), but this is created within function
-
-* column name (changes)
-
 ```{r Problem 1 function}
 
 replace_missing<- function(df) {
@@ -56,20 +32,25 @@ replace_missing<- function(df) {
   }
 }
 
-replace_missing(iris_with_missing)
+```
+
+If I wanted to apply this function to one particular column in the dataset, I would specify column in the function input, e.g.:
+
+```{r}
+replace_missing(iris_with_missing$Sepal.Length)
 
 ```
 
-Applying replace_missing function to iris_with_missing_dataset
+Since I want to apply this function to each column in the dataset, I will apply it across the dataset using the map function:  
 ```{r replacing missing in iris_with_missing dataset}
-
 iris_replace_missing <- map(iris_with_missing, replace_missing) %>% data.frame()
+
 ```
 
-
+If I want to change the summary measure that is used to fill in the numeric NA cells, I need to add that as an additional argument in the function:
 ```{r function with different summary statements}
 
-replace_missing_update<- function(df, summary_stat) {
+replace_missing_update <- function(df, summary_stat) {
   
   summary_value <- df %>% summary_stat(., na.rm = TRUE) %>% round(., 1)
   virginica<-c("virginica")
@@ -83,7 +64,6 @@ replace_missing_update<- function(df, summary_stat) {
 
 ```
 
-
 ```{r replace missing with mean} 
 
 iris_replace_missing_mean <- map(iris_with_missing, replace_missing_update, mean) %>% data.frame()
@@ -95,11 +75,7 @@ iris_replace_missing_median <- map(iris_with_missing, replace_missing_update, me
 
 ##Problem 2
 
-This problem uses the Airbnb data.
-
-Load and tidy the data as needed for analysis. Nest columns within boro and describe the resulting data frame.
-
-Using mutate + map (and other functions as necessary), fit models for rental price as an outcome using rating and room type as predictors. Extract the results of your modeling and unnest the result. Present the results of your analysis, using text, tables, and figures as appropriate.
+Loading and tidying data:
 
 ```{r loading and tidying airbnb data}
 library(janitor)
@@ -110,19 +86,20 @@ airbnb_data <- read_csv("../data/nyc_airbnb.csv") %>%
          latitude, longitude)
 ```
 
+Nesting data frame within boro:
 
 ```{r nesting data frame in boro}
 airbnb_data_nest<-nest(airbnb_data, neighbourhood:longitude)
 
-
 ```
 
-Nesting the airbnb_data dataset within boro results in a new dataset with 5 observations and 2 variables: borough name (boro), and the corresponding list columns (data) that contain all the information about neighborhoods, rating, price, room_type, latitude, and longitude for each borough. 
+Nesting the airbnb_data dataset within boro results in a new dataset with `r nrow(airbnb_data_nest)` observations and `r ncol(airbnb_data_nest)`variables: borough name (boro), and the corresponding list columns (data) that contain all the information about neighborhoods, rating, price, room_type, latitude, and longitude for each borough. 
 
 
 *Rental Price by Rating*
 
 This is a continuous predictor variable 
+
 ```{r fitting model for rental price by rating}
 #Rating
 
@@ -138,12 +115,13 @@ airbnb_data %>%
   ggplot(aes(x = rating, y = price, group = boro, color = boro)) + 
     geom_point() + 
     geom_smooth(method = "lm", formula = y ~ x) +
-  facet_grid(. ~boro) + 
+  facet_grid(. ~ boro) + 
   labs(
     title = "Plot of rental price by rating") +
    theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
-The table of slope and intercept values, and the plots show that for all boroughs except Staten Island, there is a positive relationship between rating and price. 
+
+The table of slope and intercept values suggest that for all boroughs except Staten Island, there is a positive relationship between rating and price. However, looking at the plots, it appears that the relationship between rating and rental price is not linear and therefore a linear model is not a great model for this data. 
 
 *Rental Price by Room Type*
 
@@ -161,32 +139,20 @@ airbnb_data %>%
   ggplot(aes(x = room_type, y = price, group = boro, color = boro)) + 
     geom_point() + 
     geom_smooth(method = "lm", formula = y ~ x) +
-  facet_grid(. ~boro) + labs(
+  facet_grid(. ~ boro) + labs(
     title = "Plot of rental price by room_type") +
    theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
 
-The table of slope and intercept values and the plots show that for all 5 boroughs, there is a negative relationship between price and room type when room_type "Entire house/apartment" is the reference value. 
+
+The table of slope and intercept values show that for all 5 boroughs, there is a negative relationship between price and room type when room_type "Entire house/apartment" is the reference value. However, again when lookingt at the plots, it appears that the relationship between room type and rental price is not linear and therefore a linear model is not a great model for this data. 
 
 
 ##Problem 3
 When designing an experiment or analysis, a common question is whether it is likely that a true effect will be detected – put differently, whether a false null hypothesis will be rejected. The probability that a false null hypothesis is rejected is referred to as power, and it depends on several factors, including: the sample size; the effect size; and the error variance. In this problem, you will conduct a simulation to explore power in a multiple linear regression.
 
-First set the following design elements:
-
-Fix n=30
-Fix xi1
- and xi2
- as draws from independent standard normal distributions
- 
- Fix β0=1
- and β1=1
-.
-Fix σ2=50
-Next, set β2=0
-. Generate 10000 datasets from the model
 ```{r creating function to simulate regression model}
-sim_regression <- function(n, beta0, beta1, beta2, var) {
+sim_regression <- function(n = 30, beta0 = 1, beta1 =1, beta2, var) {
   sim_data <- tibble(
     xi1 = rnorm(n, 0, 1),
     xi2 = rnorm(n, 0,1),
@@ -196,33 +162,32 @@ sim_regression <- function(n, beta0, beta1, beta2, var) {
 
   tibble(
   beta2_real = beta2,
-  beta2_hat=summary(ls_fit)$coefficients[3,1], 
+  beta2_hat = summary(ls_fit)$coefficients[3,1], 
   pvalue = summary(ls_fit)$coefficients[3,4]
   
   )  
 }
 
-beta2_0<-rerun(5,sim_regression(n=30, beta0=1, beta1=1, beta2 = 0, var = 50)) %>% bind_rows()
+beta2_0 <- rerun(5,sim_regression(n=30, beta0=1, beta1=1, beta2 = 0, var = 50)) %>% bind_rows()
 
 ```
 
-Repeat the above for β2={1,2,3,4,5,6}--since we're going to be repeating this multiple times, we should make a function and use a map function to apply it across multiple options for beta2
+Repeat the above for β2={1,2,3,4,5,6}--since we're going to be repeating this multiple times, we should make a new function and use a map function to apply it across multiple options for beta2
 
-```{r creating function for running regression model, applying it across different beta2 using map function}
+```{r, eval = FALSE}
 
 simulate_beta2<- function(n_rep, beta2) {
   rerun(n_rep, sim_regression(n=30, beta0=1, beta1=1, beta2, var = 50)) %>% bind_rows()
 }
 
 beta2_options<-c(0:6)
-beta2_estimates<-map_df(beta2_options, simulate_beta2, n_rep = 1000)
+beta2_estimates<-map_df(beta2_options, simulate_beta2, n_rep = 10000)
 
 ```
 
-***Note: I used 1000 here instead of 10000 because when I tried 10000 it took over 15 minutes and still didn't load, so I stopped trying. 
 
-Make a plot showing the proportion of times the null was rejected (the power of the test) on the y axis and the true value of β2
- on the x axis. Describe the association between effect size and power.
+Making a plot showing the proportion of times the null was rejected (the power of the test) on the y axis and the true value of β2
+ on the x axis: 
  
 ```{r}
 
@@ -230,7 +195,7 @@ beta2_estimates %>% group_by(beta2_real) %>%
   mutate(n_tests = n()) %>%
  filter(pvalue < 0.05) %>%
   group_by(beta2_real) %>%
-  mutate(reject = n(), power = reject/n_tests) %>% 
+  mutate(reject = n(), power = reject/n_tests*100) %>% 
   select(beta2_real, power) %>% 
   unique() %>%
   ggplot(aes(x = beta2_real, y = power)) + 
@@ -242,28 +207,26 @@ beta2_estimates %>% group_by(beta2_real) %>%
 ```
 
 
-This plot shows that in general, as effect size increases, the power increases. 
+This plot shows that as effect size increases, the power increases. 
 
 
 
  
-Make a plot showing the average estimate of β̂2
- on the y axis and the true value of β2
- on the x axis. 
+Making a plot showing the average estimate of β̂2 on the y axis and the true value of β2 on the x axis:
 ```{r}
  
-beta2_hat<-beta2_estimates %>% group_by(beta2_real) %>%
+beta2_hat <- beta2_estimates %>% group_by(beta2_real) %>%
   mutate(mean_beta2 = mean(beta2_hat), variable = "mean_beta2_hat") %>%
   select(beta2_real, mean_beta2, variable) %>%
   unique() 
   
-beta2_reject<-beta2_estimates %>% filter(pvalue < 0.05) %>% 
+beta2_reject <- beta2_estimates %>% filter(pvalue < 0.05) %>% 
   group_by(beta2_real) %>%
   mutate(mean_beta2 = mean(beta2_hat), variable = "mean_beta2_reject") %>%
   select(beta2_real, mean_beta2, variable) %>%
   unique() 
  
-beta2_summary<-rbind(beta2_hat, beta2_reject) 
+beta2_summary <- rbind(beta2_hat, beta2_reject) 
 
 beta2_summary %>% 
   ggplot(aes(x = beta2_real, y = mean_beta2, col = variable)) + 
@@ -317,7 +280,6 @@ sim_df_const_function(25) %>%
 #Since we're repeating this process more than 3 times, we need to write another function:
 
 sim_df <- function(n_samp, n) {
-  
   sim_df_const_function(n_samp) %>%
   bootstrap(n) %>% 
   mutate(models = map(strap, ~lm(y ~ x, data = .x)), 
@@ -336,9 +298,6 @@ sim_df <- function(n_samp, n) {
 
 ```
 
-
-
-
 ```{r Problem 4 n_sample is 50 }
 
 sim_df(n_samp=50, n=5000) + labs(title = "Distribution of theta_hat when n_samp = 50 and n=5000")
@@ -351,8 +310,6 @@ sim_df(n_samp=250, n=5000) + labs(title = "Distribution of theta_hat when n_samp
 
 
 ```
-
-
 
 As we can see from these plots, as n_sample, sample size of the simulated dataset increases, the distributions of theta_hat become less skewed (the tails on both sides are more even), and the distributions shift to the left (more negative), which means that beta0_hats are smaller than beta1_hats, since it is on the log scale. 
 
