@@ -93,7 +93,7 @@ airbnb_data_nest<-nest(airbnb_data, neighbourhood:longitude)
 
 ```
 
-Nesting the airbnb_data dataset within boro results in a new dataset with `r nrow(airbnb_data_nest)` observations and `r ncol(airbnb_data_nest)`variables: borough name (boro), and the corresponding list columns (data) that contain all the information about neighborhoods, rating, price, room_type, latitude, and longitude for each borough. 
+Nesting the airbnb_data dataset within boro results in a new dataset with `r nrow(airbnb_data_nest)` observations and `r ncol(airbnb_data_nest)` variables: borough name (boro), and the corresponding list columns (data) that contain all the information about neighborhoods, rating, price, room_type, latitude, and longitude for each borough. 
 
 
 *Rental Price by Rating*
@@ -149,7 +149,7 @@ The table of slope and intercept values show that for all 5 boroughs, there is a
 
 
 ##Problem 3
-When designing an experiment or analysis, a common question is whether it is likely that a true effect will be detected – put differently, whether a false null hypothesis will be rejected. The probability that a false null hypothesis is rejected is referred to as power, and it depends on several factors, including: the sample size; the effect size; and the error variance. In this problem, you will conduct a simulation to explore power in a multiple linear regression.
+
 
 ```{r creating function to simulate regression model}
 sim_regression <- function(n = 30, beta0 = 1, beta1 =1, beta2, var) {
@@ -174,14 +174,15 @@ beta2_0 <- rerun(5,sim_regression(n=30, beta0=1, beta1=1, beta2 = 0, var = 50)) 
 
 Repeat the above for β2={1,2,3,4,5,6}--since we're going to be repeating this multiple times, we should make a new function and use a map function to apply it across multiple options for beta2
 
-```{r, eval = FALSE}
+```{r}
 
 simulate_beta2<- function(n_rep, beta2) {
   rerun(n_rep, sim_regression(n=30, beta0=1, beta1=1, beta2, var = 50)) %>% bind_rows()
 }
 
 beta2_options<-c(0:6)
-beta2_estimates<-map_df(beta2_options, simulate_beta2, n_rep = 10000)
+
+beta2_estimates <- map_df(beta2_options, simulate_beta2, n_rep = 10000)
 
 ```
 
@@ -237,11 +238,13 @@ beta2_summary %>%
 
 
 
-As this plot shows, the sample averages of beta2_hat across tests for which the null is rejected are not approximately equal to the true value of β2. This makes sense--in order for the null hypothesis that β2=0 to be rejected, we would expect that the estimated β2 is far from zero. 
+As this plot shows, the sample averages of beta2_hat across tests for which the null is rejected are not approximately equal to the true value of β2. This makes sense--in order for the null hypothesis that β2= beta2_real to be rejected, we would expect that the estimated β2 is far from the true β2 value.  
 
 
 
 ##Problem 4
+
+What I want to do is apply the bootstrap to the simulated dataset `sim_df_const` to obtain theta_hat--to do this, I need to create a function to generate `sim_df_const` with different sample sizes, then apply the bootstrap to the results of this simulation, and then calculate a linear model and extract the parameter estimates: 
 
 ```{r Problem 4 function}
 
@@ -276,8 +279,9 @@ sim_df_const_function(25) %>%
 
 ```
 
+Since I want to repeat this procedure more than 2 times, changing n_samp each time, I need to put this process into another function:
+
 ```{r making this into a function}
-#Since we're repeating this process more than 3 times, we need to write another function:
 
 sim_df <- function(n_samp, n) {
   sim_df_const_function(n_samp) %>%
@@ -298,12 +302,14 @@ sim_df <- function(n_samp, n) {
 
 ```
 
+Sample size of the simulated dataset is 50:
 ```{r Problem 4 n_sample is 50 }
 
 sim_df(n_samp=50, n=5000) + labs(title = "Distribution of theta_hat when n_samp = 50 and n=5000")
 
 ```
 
+Sample size of the simulated dataset is 250:
 ```{r Problem 4 n_sample is 250}
 
 sim_df(n_samp=250, n=5000) + labs(title = "Distribution of theta_hat when n_samp = 250 and n=5000")
@@ -311,7 +317,6 @@ sim_df(n_samp=250, n=5000) + labs(title = "Distribution of theta_hat when n_samp
 
 ```
 
+
 As we can see from these plots, as n_sample, sample size of the simulated dataset increases, the distributions of theta_hat become less skewed (the tails on both sides are more even), and the distributions shift to the left (more negative), which means that beta0_hats are smaller than beta1_hats, since it is on the log scale. 
 
-**Question: is is appropriate that the bootstrap number is 1000? Should it be changed? 
-Changing 1000 to 5000 produces tighter plots. 
